@@ -284,25 +284,19 @@ function createCard(entry) {
 
 
 async function fetchAPODForDate(date, signal) {
-  const params = new URLSearchParams({
-    date: date
-  });
+  const dateCode = date.replaceAll('-', '').slice(2);
 
   const response = await fetch(
-    `https://science.nasa.gov/wp-json/wp/v2/apod-basic?${params}`,
+    `https://science.nasa.gov/wp-json/wp/v2/apod-basic/${dateCode}`,
     { signal }
   );
 
   if (!response.ok) {
-    throw new Error(`NASA API error for ${date} (HTTP ${response.status}).`);
+    throw new Error(`Unable to load NASA data for ${date}.`);
   }
 
   const result = await response.json();
-
-  // Handle either a single entry or an array.
   const entries = Array.isArray(result) ? result : [result];
-
-  // Only accept the requested date.
   const entry = entries.find(item => item.date === date);
 
   if (!entry) {
