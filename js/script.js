@@ -184,7 +184,18 @@ async function fetchImages() {
       throw new Error(`NASA could not load this date range (HTTP ${response.status}). Please try again.`);
     }
     const data = await response.json();
-    if (!Array.isArray(data)) throw new Error('NASA returned an unexpected response. Please try again.');
+    if (!Array.isArray(data)) {
+      throw new Error('NASA returned an unexpected response.');
+    }
+    const invalidData = data.some(entry =>
+      entry.title === 'NASA Science' ||
+      entry.url?.includes('nasa-logo@2x.png')
+    );
+    if (invalidData) {
+      throw new Error(
+        'NASA is currently returning incorrect APOD image data. Please try again later.'
+      );
+    }
     data.sort((a, b) => a.date.localeCompare(b.date));
     gallery.replaceChildren();
     if (!data.length) {
