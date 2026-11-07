@@ -177,7 +177,7 @@ async function fetchImages() {
   gallery.append(loading);
   setStatus('');
   try {
-    const params = new URLSearchParams({ api_key: 'd7tPcRQgpHDJjNm9PJrNkqCjtpkhhdmkbgfcHK7q', start_date: start, end_date: end, thumbs: 'true' });
+    const params = new URLSearchParams({ api_key: 'DEMO_KEY', start_date: start, end_date: end, thumbs: 'true' });
     const response = await fetch(`https://api.nasa.gov/planetary/apod?${params}`, { signal: requestController.signal });
     if (!response.ok) {
       if (response.status === 429 || response.status === 403) throw new Error('NASA API rate limit reached. Please try again later or use your own API key.');
