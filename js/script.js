@@ -278,6 +278,36 @@ function createCard(entry) {
   return card;
 }
 
+
+async function fetchAPODForDate(date, signal) {
+  const params = new URLSearchParams({
+    date: date
+  });
+
+  const response = await fetch(
+    `https://science.nasa.gov/wp-json/wp/v2/apod-basic?${params}`,
+    { signal }
+  );
+
+  if (!response.ok) {
+    throw new Error(`NASA API error for ${date} (HTTP ${response.status}).`);
+  }
+
+  const result = await response.json();
+
+  // Handle either a single entry or an array.
+  const entries = Array.isArray(result) ? result : [result];
+
+  // Only accept the requested date.
+  const entry = entries.find(item => item.date === date);
+
+  if (!entry) {
+    throw new Error(`NASA did not return an entry for ${date}.`);
+  }
+
+  return entry;
+}
+
 // Fetch NASA APOD data
 async function fetchImages() {
   const start = startInput.value;
@@ -336,32 +366,19 @@ async function fetchImages() {
   try {
     // New NASA WordPress APOD API
     // No personal API key required in the URL.
-    const params = new URLSearchParams({
-      start_date: start,
-      end_date: end
-    });
+    const dates = [];
 
-    const response = await fetch(
-      `https://science.nasa.gov/wp-json/wp/v2/apod-basic?${params}`,
-      { signal: controller.signal }
-    );
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        throw new Error(
-          'NASA API rate limit reached. Please try again later.'
-        );
-      }
-
-      throw new Error(
-        `NASA could not load this date range (HTTP ${response.status}).`
-      );
+    for (let i = 0; i < days; i++) {
+      const date = parseUTC(start);
+      date.setUTCDate(date.getUTCDate() + i);
+      dates.push(toISO(date));
     }
 
-    const result = await response.json();
-
-    // Support a single object or an array of entries.
-    const data = Array.isArray(result) ? result : [result];
+    const data = await Promise.all(
+      dates.map(date =>
+        fetchAPODForDate(date, controller.signal)
+      )
+    );
 
     if (!data.length || !data.every(entry => entry && entry.date)) {
       throw new Error('NASA returned an unexpected response.');
