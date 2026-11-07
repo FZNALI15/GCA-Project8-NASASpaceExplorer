@@ -145,8 +145,12 @@ function openModal(entry) {
   document.getElementById('modalDate').textContent =
     formatDate(entry.date);
 
+  const explanation = entry.explanation || 'No description available.';
+  const temp = document.createElement('div');
+  temp.innerHTML = explanation;
+
   document.getElementById('modalExplanation').textContent =
-    entry.explanation || 'No description available.';
+    temp.textContent || 'No description available.';
 
   const source = document.getElementById('modalLink');
   source.href = entry.permalink ||
